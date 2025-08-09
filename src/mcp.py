@@ -12,7 +12,7 @@ from src.lib.utils.remove_tabs import remove_tabs
 
 def make_mcp_server(name: str, project_path: str) -> FastMCP:
     mcp = FastMCP(name=name, instructions=remove_tabs("""
-                  Debug JavaScript/TypeScript via the Chrome DevTools Protocol (CDP).
+                  Debug JavaScript/TypeScript repository via the Chrome DevTools Protocol (CDP).
                   1) Create a session with your entrypoint code. Execution starts immediately.
                   2) Use 'debugger;' in your code (at least once) to pause and inspect.
                   3) Execute CDP commands (set breakpoints, step, evaluate, etc.) against that session.
@@ -107,7 +107,7 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
             For resume/step commands that trigger "Debugger.resumed", the session waits until the next
             pause ("Debugger.paused") or termination ("Inspector.detached") and includes those events in the result.
 
-            Note: In ESM, with pause-on-exceptions set to 'uncaught' (default), a top-level throw pauses once
+            Note: In ESM, with pause-on-exceptions set to 'uncaught', a top-level throw pauses once
             at the throw site with reason='exception'. The secondary pause for the module promise rejection
             (reason='promiseRejection') does not occur. If you switch policy to 'all', you may observe two pauses
             and may need to call Debugger.resume twice to reach termination.

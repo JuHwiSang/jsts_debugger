@@ -37,17 +37,13 @@ g();
             event = result.get("data", {})
             if event.get("method") == "Debugger.paused":
                 reason = event.get("params", {}).get("reason")
-                if reason == "exception":
+                if reason == "promiseRejection":
                     paused_event_found = True
                     break
     assert paused_event_found, "Did not pause on exception as expected"
 
-    # Resume twice to finish:
-    # - With ESM, the top-level throw pauses first at the throw site (reason='exception')
-    # - Then the module execution promise rejects and pauses again (reason='promiseRejection')
-    # So we need two resumes to reach termination.
     finish_result = await execute_commands(
-        mcp_server, session_id, [("Debugger.resume", {}), ("Debugger.resume", {})]
+        mcp_server, session_id, [("Debugger.resume", {})]
     )
 
     detached_event_found = any(
