@@ -219,7 +219,8 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
             "objectId": "<objId>",
             "ownProperties": true, // optional, default false
             "accessorPropertiesOnly": true, // optional, default false
-            "generatePreview": true // optional, default false
+            "generatePreview": true, // optional, default false
+            "nonIndexedPropertiesOnly": true, // optional, default false
             }
             ```
             
