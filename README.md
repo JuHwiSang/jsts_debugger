@@ -1,16 +1,18 @@
 # JSTS Debugger
 
-**An MCP Server for Remotely Debugging Arbitrary JavaScript/TypeScript Repositories**
+> [!WARNING]
+> This project is in a very early and unstable stage of development. Please use it with caution.
 
-`jsts_debugger` provides a MCP (Model-Context Protocol) server for remotely debugging JavaScript and TypeScript projects using the Chrome DevTools Protocol (CDP). It uses Docker to run each debugging session in an isolated environment, ensuring safe and independent debugging.
+**An MCP Server that Provides an Interface for LLMs to Remotely Debug JavaScript/TypeScript Repositories**
+
+`jsts_debugger` provides a MCP (Model-Context Protocol) server that enables a Large Language Model (LLM) to debug JavaScript and TypeScript projects. It uses the Chrome DevTools Protocol (CDP) for debugging and runs each session in an isolated Docker container, ensuring safe and independent operation.
 
 ## Key Features
 
-- **Remote Debugging**: Debug any JavaScript/TypeScript project, whether local or remote.
+- **LLM-Centric Debugging**: Provides a high-level MCP interface for LLMs to control the debugging process.
 - **Isolated Sessions**: Each debugging session runs in a separate Docker container, guaranteeing complete isolation.
 - **CDP Command Support**: Directly execute commands from various CDP domains like `Debugger`, `Runtime`, and `Profiler` to control the debugging flow.
-- **Simple to Use**: Perform all debugging tasks with three simple MCP tools: `create_session`, `execute_commands`, and `close_session`.
-- **Dynamic Image Building**: Dynamically builds and caches Docker images tailored to the project and code being debugged for improved efficiency.
+- **Simple Toolset**: Perform all debugging tasks with three simple MCP tools: `create_session`, `execute_commands`, and `close_session`.
 
 ## Getting Started
 
@@ -35,72 +37,74 @@
 
 ## Programmatic Usage
 
-You can also use `jsts_debugger` as a library. This allows you to start the server and interact with it from a client in your Python code, which is useful for automation and advanced integrations.
+You can also use `jsts_debugger` as a library.
 
-The following example shows how to run the server in a background thread and connect to it with a client.
+### 1. Starting the Server
+
+The following example shows how to run the server in a background thread.
 
 ```python
-import asyncio
-import threading
-import time
 from jsts_debugger import make_mcp_server
-from fastmcp import Client
-
-# --- Server Setup ---
 
 # Path to the JS/TS project you want to debug
 project_path = "/path/to/your/js-ts-project"
 
 # Create the MCP server instance
-# The server will run on http://localhost:8000 by default
-mcp_server = make_mcp_server("jsts-debugger-programmatic", project_path)
+mcp_server = make_mcp_server("jsts-debugger-server", project_path)
 
-# Run the server in a separate daemon thread
-# FastMCP defaults to port 8000 for HTTP.
-server_thread = threading.Thread(target=mcp_server.run, args=("localhost", 8000), daemon=True)
-server_thread.start()
-print("MCP Server starting on http://localhost:8000...")
-time.sleep(2) # Give the server a moment to initialize
+# Run the server
+mcp_server.run(transport="http", host="127.0.0.1", port=8000)
+```
 
-# --- Client Interaction ---
+### 2. Connecting a Client and Debugging
 
-async def main():
-    print("Connecting client to http://localhost:8000/mcp...")
-    client = Client("http://localhost:8000/mcp")
+Once the server is running, you can connect to it with a client to start debugging. Note that in most cases, this connection and debugging process will be handled by an LLM rather than direct user interaction.
+
+```python
+import asyncio
+from fastmcp import Client
+
+# Client connects to the running server's MCP endpoint
+client = Client("http://127.0.0.1:8000/mcp")
+
+async def debug_session():
     async with client:
-        print("Client connected.")
-
-        # Example: Create a debugging session
+        # The code below demonstrates a simple debugging scenario.
+        # It logs a message, pauses execution with a `debugger` statement,
+        # performs a simple calculation, and then logs a final message.
         code_to_debug = """
         console.log('Hello from the debugger!');
-        debugger;
+        debugger; // Pause execution
         const result = 1 + 2;
         console.log('Calculation done.');
         """
+        
+        # 1. Create a session
         response = await client.call_tool("create_session", {"code": code_to_debug})
-        data = response.data
-        session_id = data['session_id']
-        print(f"Session created: {session_id}")
-        print("Initial events:", data['execution_result'])
+        session_id = response.data['session_id']
+        # 'initial_events' contains all events up to the first pause
+        # At this point, initial_events contains the console message
+        # "Hello from the debugger!" and the pause event from the debugger statement
+        initial_events = response.data['execution_result']
 
-        # Example: Resume execution
-        print("\\nResuming execution...")
-        response = await client.call_tool("execute_commands", {
-            "session_id": session_id,
-            "commands": [("Debugger.resume", {})]
-        })
-        print("Execution result after resume:", response.data['execution_result'])
+        # 2. Resume execution
+        response = await client.call_tool(
+            "execute_commands",
+            {
+                "session_id": session_id,
+                "commands": [("Debugger.resume", {})]
+            }
+        )
+        # 'execution_result' contains events after resuming
+        # At this point, execution_result contains the console message
+        # "Calculation done." and the execution context destroyed event
+        execution_result = response.data['execution_result']
 
-        # Example: Close the session
+        # 3. Close the session
         await client.call_tool("close_session", {"session_id": session_id})
-        print(f"\\nSession {session_id} closed.")
 
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("Client finished.")
-    # The main thread exits, and the daemon server thread is terminated automatically.
+# Run the async debugging logic
+asyncio.run(debug_session())
 ```
 
 ## MCP Tool API
@@ -109,7 +113,7 @@ if __name__ == "__main__":
 
 ### 1. `create_session`
 
-Creates a new debugging session. The provided code is written to the `/app/entrypoint.ts` file in an isolated Docker container and executed immediately.
+Creates a new debugging session. The provided code is written to the `/app/entrypoint.ts` file and executed immediately. The primary purpose of the `code` parameter is to import and run specific parts of the project (e.g., a function or a class method) that you want to debug.
 
 -   **Parameters**:
     -   `code` (str): The TypeScript/JavaScript code to execute.
@@ -132,7 +136,7 @@ Executes one or more CDP commands in an existing session.
 
 #### Supported Commands
 
-A wide range of CDP commands are supported. For a full list and detailed parameters for each command, refer to the `execute_commands` tool description in `src/mcp.py`. Key commands include:
+A wide range of CDP commands are supported. For a full list and detailed parameters for each command, refer to the `execute_commands` tool description in `jsts_debugger/mcp.py`. Key commands include:
 
 -   `Debugger.resume`
 -   `Debugger.stepOver`
@@ -144,37 +148,6 @@ A wide range of CDP commands are supported. For a full list and detailed paramet
 -   `Runtime.getProperties`
 -   `Runtime.callFunctionOn`
 -   ... and many more.
-
-#### Example: Inspecting a variable at a breakpoint
-
-```python
-# 1. Create a session (with 'debugger;' in the code)
-session_id, _ = create_session_with_code(mcp_server, """
-    const x = 10;
-    const y = 20;
-    debugger;
-    console.log(x + y);
-""")
-
-# Get the callFrameId from the paused state at 'debugger;'
-call_frame_id = get_paused_call_frame_id(...)
-
-# 2. Use execute_commands to check the value of variable x
-result = execute_commands(mcp_server, session_id, [
-    ("Debugger.evaluateOnCallFrame", {
-        "expression": "x",
-        "callFrameId": call_frame_id,
-        "returnByValue": True
-    })
-])
-# You can find "value": 10 in the result
-
-# 3. Resume execution
-execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
-
-# 4. Close the session
-close_session(mcp_server, session_id)
-```
 
 ### 3. `close_session`
 
