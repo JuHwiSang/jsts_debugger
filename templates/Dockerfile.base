@@ -1,0 +1,32 @@
+# This file is used as a base image for the jsts_debugger package.
+# If you see this file outside of the package, it is created by the debugger automatically to debug this repository.
+# Don't worry and ignore or delete this file.
+FROM node:20-slim
+
+RUN npm install -g ts-node source-map-support
+
+WORKDIR /app/
+
+COPY {repo_name} {repo_name}
+
+WORKDIR /app/{repo_name}
+
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN npm link
+
+WORKDIR /app
+
+COPY package.json package.json
+COPY tsconfig.json tsconfig.json
+
+RUN npm init -y
+RUN npm install tsx typescript @types/node
+RUN npm link {repo_name}
+
+COPY entrypoint.ts entrypoint.ts
+
+EXPOSE 9229
+
+CMD ["node"]
+
+
