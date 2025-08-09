@@ -185,7 +185,7 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
             "returnByValue": true, // optional, default false
             "awaitPromise": true, // optional, default false
             "generatePreview": true, // optional, default false
-            "throwOnSideEffect": true, // optional, default false
+            "throwOnSideEffect": true, // optional, default false // if false, you can do allocation in the expression like `const a = new Array(10);`
             "allowUnsafeEvalBlockedByCSP": true, // optional, default true
             "disableBreaks": true, // optional, default false
             "timeout": 10000 // optional ms, default 0 (no timeout)
@@ -198,7 +198,8 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
             "expression": "1+1",
             "callFrameId": "<callFrameId>", // You can get callFrameId from Debugger.paused event // current call frame is the first call frame.
             "returnByValue": true,
-            "awaitPromise": true
+            "awaitPromise": true,
+            "throwOnSideEffect": true,
             }
             ```
             
