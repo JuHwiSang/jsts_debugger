@@ -35,7 +35,6 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
             - timeout (seconds, default 30)
 
             You can set breakpoints under /app/{get_package_name(project_path)}/... to debug project files.
-            If your code needs additional packages at runtime, spawn installation commands via child_process (e.g., npm install).
             Each session runs in its own container.
 
             Container layout:
