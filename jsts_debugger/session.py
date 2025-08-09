@@ -15,7 +15,7 @@ from websockets.client import WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 from docker.errors import NotFound, APIError
 from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands_set, entrypoint_ts_path
-from jsts_debugger.lib.utils.command import is_command_to_ignore, is_debugger_resumed_command
+from jsts_debugger.lib.utils.command import is_command_to_ignore, is_debugger_resumed_command, is_program_run_command, is_command_may_run
 
 class CDPError(Exception):
     """Custom exception for CDP errors."""
@@ -139,14 +139,14 @@ class JSTSSession:
         return events
         # await self.execute_command("Debugger.pause", {})
 
-    async def _wait_for_pause_or_detach(self) -> List[Dict[str, Any]]:
+    async def _wait_for_pause_or_detach(self, timeout: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         Waits for a Debugger.paused or Inspector.detached event.
         Wraps events in a dictionary with a 'type' field.
         """
         collected_results = []
         try:
-            async with asyncio.timeout(self.timeout_seconds):
+            async with asyncio.timeout(timeout or self.timeout_seconds):
                 while not self.is_done():
                     event = await self._events.get()
                     if event is None:
@@ -156,7 +156,9 @@ class JSTSSession:
                         break
             return collected_results
         except asyncio.TimeoutError:
-            raise CDPError(f"Timeout waiting for pause/detach")
+            # 에러 낼 시, 'may run'류 명령어들이 run되지 않은 경우 에러가 발생해 응답을 받지 못하게 됨.
+            print(f"Timeout waiting for pause/detach") # warning
+            return collected_results
 
     async def execute_command(
         self,
@@ -194,20 +196,13 @@ class JSTSSession:
         if command_result is not None:
             collected_results.append({"type": "command_result", "data": command_result})
 
-        try:
-            first_event = await asyncio.wait_for(self._events.get(), timeout=1.0)
-            collected_results.append({"type": "event", "data": first_event})
+        if is_program_run_command(method) or is_command_may_run(method):
+            # This command may cause execution to continue, so we wait for the next
+            # pause or for the script to finish.
+            run_events = await self._wait_for_pause_or_detach()
+            collected_results.extend(run_events)
 
-            if is_debugger_resumed_command(first_event.get("method")):
-                # After a resume, we need to wait for the next pause or detach
-                resumed_events = await self._wait_for_pause_or_detach()
-                collected_results.extend(resumed_events)
-            
-            return collected_results
-
-        except asyncio.TimeoutError:
-            # No subsequent event, which is normal for non-blocking commands
-            return collected_results
+        return collected_results
 
     async def execute_commands(
         self, commands: list[tuple[str, dict[str, Any]]],
