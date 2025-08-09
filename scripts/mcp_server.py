@@ -1,5 +1,5 @@
 import argparse
-from jsts_debugger.mcp import make_mcp_server
+from jsts_debugger import make_mcp_server
 
 def main():
     """MCP 서버를 실행합니다."""
