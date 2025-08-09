@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import json
 from pathlib import Path
-from src.mcp import make_mcp_server
+from jsts_debugger.mcp import make_mcp_server
 
 @pytest.fixture(scope="session")
 def test_project():

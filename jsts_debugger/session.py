@@ -14,8 +14,8 @@ from typing import Any, Optional, Dict, List
 from websockets.client import WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 from docker.errors import NotFound, APIError
-from src.config import AllowedDebuggerCommand, allowed_debugger_commands_set, entrypoint_ts_path
-from src.lib.utils.command import is_command_to_ignore, is_debugger_resumed_command
+from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands_set, entrypoint_ts_path
+from jsts_debugger.lib.utils.command import is_command_to_ignore, is_debugger_resumed_command
 
 class CDPError(Exception):
     """Custom exception for CDP errors."""

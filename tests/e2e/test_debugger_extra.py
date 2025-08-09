@@ -6,7 +6,7 @@ from tests.e2e.helpers import (
     close_session,
     get_paused_call_frame_id,
 )
-from src.lib.utils.command import is_script_finished_command
+from jsts_debugger.lib.utils.command import is_script_finished_command
 
 
 pytestmark = pytest.mark.asyncio

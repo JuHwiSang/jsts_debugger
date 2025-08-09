@@ -1,13 +1,13 @@
 from fastmcp import FastMCP
 import json
 
-from src.config import AllowedDebuggerCommand, allowed_debugger_commands
-from src.debugger import JSTSDebugger
+from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands
+from jsts_debugger.debugger import JSTSDebugger
 from typing import Any, Optional, Dict, List
 import traceback
 import re
-from src.helpers import get_package_name
-from src.lib.utils.remove_tabs import remove_tabs
+from jsts_debugger.helpers import get_package_name
+from jsts_debugger.lib.utils.remove_tabs import remove_tabs
 
 
 def make_mcp_server(name: str, project_path: str) -> FastMCP:

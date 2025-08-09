@@ -4,7 +4,7 @@ from tests.e2e.helpers import (
     execute_commands,
     close_session,
 )
-from src.lib.utils.command import is_script_finished_command
+from jsts_debugger.lib.utils.command import is_script_finished_command
 
 CODE_FOR_BREAKPOINT = """
 let i = 0;

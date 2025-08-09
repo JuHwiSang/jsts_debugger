@@ -1,4 +1,5 @@
-import src.debugger as debugger
-import src.session as session
+import jsts_debugger.debugger as debugger
+import jsts_debugger.session as session
+import jsts_debugger.mcp as mcp
 
-__all__ = ['debugger', 'session']
+__all__ = ['debugger', 'session', 'mcp']
