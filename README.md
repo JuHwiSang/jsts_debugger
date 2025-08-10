@@ -21,19 +21,12 @@
 - Python 3.11+
 - Docker
 
-### Installation and Execution
+### Installation
 
-1.  Clone the repository and install the project in editable mode. This will also install all dependencies.
-    ```bash
-    git clone https://github.com/example/jsts_debugger.git
-    cd jsts_debugger
-    pip install -e .
-    ```
-
-2.  Run the MCP server. You must pass the path to the project you want to debug as an argument.
-    ```bash
-    python -m scripts.mcp_server <path/to/your/js-ts-project>
-    ```
+You can install `jsts_debugger` directly from the GitHub repository using `pip`:
+```bash
+pip install git+https://github.com/JuHwiSang/jsts_debugger.git
+```
 
 ## Programmatic Usage
 
@@ -157,6 +150,8 @@ Closes an active debugging session and cleans up associated resources (like the 
     -   `session_id` (str): The ID of the session to close.
 -   **Returns**:
     -   `status` (str): A status message for the session closure.
+
+**Note**: All active sessions are automatically closed and their resources cleaned up when the MCP server shuts down. This ensures no orphaned Docker containers are left running.
 
 ## Container Environment
 

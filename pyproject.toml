@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "jsts_debugger"
 version = "0.1.1"
 authors = [
-  { name="Placeholder Name", email="placeholder@example.com" },
+  { name="JuHwiSang", email="juhs2005@gmail.com" },
 ]
-description = "An MCP Server for Remotely Debugging Arbitrary JavaScript/TypeScript Repositories"
+description = "An MCP Server that Provides an Interface for LLMs to Remotely Debug JavaScript/TypeScript Repositories"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
@@ -28,10 +28,3 @@ test = [
     "pytest",
     "pytest-asyncio"
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/example/jsts_debugger"
-"Bug Tracker" = "https://github.com/example/jsts_debugger/issues"
-
-[tool.setuptools.packages.find]
-# No 'where' key needed, setuptools will find the package in the root.
