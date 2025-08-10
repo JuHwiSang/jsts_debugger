@@ -23,6 +23,12 @@ dependencies = [
     "httpx",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-asyncio"
+]
+
 [project.urls]
 "Homepage" = "https://github.com/example/jsts_debugger"
 "Bug Tracker" = "https://github.com/example/jsts_debugger/issues"
