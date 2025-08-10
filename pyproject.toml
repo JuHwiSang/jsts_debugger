@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "fastmcp[server]",
+    "fastmcp",
     "docker",
     "websockets",
     "httpx",
@@ -28,3 +28,6 @@ test = [
     "pytest",
     "pytest-asyncio"
 ]
+
+[tool.setuptools]
+packages = ["jsts_debugger"]
