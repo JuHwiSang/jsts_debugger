@@ -21,7 +21,7 @@ import docker
 import httpx
 from docker.client import DockerClient
 from docker.models.containers import Container
-from websockets.client import connect, WebSocketClientProtocol
+from websockets.asyncio.client import connect, ClientConnection
 from websockets.exceptions import WebSocketException
 
 from docker.errors import (
@@ -244,7 +244,7 @@ class JSTSDebugger:
 
     async def _connect_to_debugger(
         self, container: Container
-    ) -> WebSocketClientProtocol:
+    ) -> ClientConnection:
         """Connects to the debugger inside the container and returns a WebSocket client."""
         try:
             container.reload()

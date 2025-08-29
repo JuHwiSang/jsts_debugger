@@ -21,7 +21,7 @@ async def test_readme_programmatic_usage_example(test_project):
     mcp_server = make_mcp_server("jsts-debugger-readme-test", test_project)
     
     def run_server():
-        mcp_server.run(transport="http", host="127.0.0.1", port=test_port, path="/mcp")
+        mcp_server.run(transport="streamable-http", host="127.0.0.1", port=test_port, path="/mcp")
     
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()

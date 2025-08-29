@@ -1,5 +1,5 @@
 import pytest
-from tests.e2e.helpers import (
+from tests.jsts_debugger.e2e.helpers import (
     create_session_with_code,
     execute_commands,
     close_session,

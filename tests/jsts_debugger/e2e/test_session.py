@@ -1,6 +1,6 @@
 import pytest
 from jsts_debugger.lib.utils.command import is_script_finished_command
-from tests.e2e.helpers import (
+from tests.jsts_debugger.e2e.helpers import (
     create_session_with_code,
     execute_commands,
     close_session,

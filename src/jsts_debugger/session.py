@@ -11,8 +11,9 @@ import json
 from datetime import datetime
 from docker.models.containers import Container
 from typing import Any, Optional, Dict, List
-from websockets.client import WebSocketClientProtocol
+from websockets.asyncio.client import ClientConnection
 from websockets.exceptions import ConnectionClosed
+from websockets.protocol import State
 from docker.errors import NotFound, APIError
 from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands_set, entrypoint_ts_path
 from jsts_debugger.lib.utils.command import is_command_to_ignore, is_debugger_resumed_command, is_program_run_command, is_command_may_run
@@ -42,7 +43,7 @@ class JSTSSession:
         self,
         session_id: str,
         container: Container,
-        ws: WebSocketClientProtocol,
+        ws: ClientConnection,
         timeout: int = 30,
     ):
         """
@@ -233,7 +234,7 @@ class JSTSSession:
         Cleans up all resources associated with this session.
         """
         self._reader_task.cancel()
-        if self.ws and not self.ws.closed:
+        if self.ws and not (self.ws.state in [State.CLOSED, State.CLOSING]):
             print(f"[{datetime.now()}] Closing WebSocket")
             await self.ws.close()
 
