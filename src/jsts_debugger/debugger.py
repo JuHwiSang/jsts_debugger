@@ -32,6 +32,8 @@ from docker.errors import (
     ImageNotFound,
 )
 
+from importlib.resources import files
+
 from .config import AllowedDebuggerCommand
 from .session import JSTSSession
 from .helpers import get_package_name
@@ -81,16 +83,12 @@ class JSTSDebugger:
 
     def __init__(
         self,
-        base_dockerfile_path: str = "templates/Dockerfile.base",
-        base_package_json_path: str = "templates/package.base.json",
-        base_tsconfig_json_path: str = "templates/tsconfig.base.json",
     ):
         """Initializes the JSTSDebugger."""
-        self.base_dockerfile_path = base_dockerfile_path
-        with open(base_package_json_path, "r") as f:
-            self.base_package_json = json.load(f)
-        with open(base_tsconfig_json_path, "r") as f:
-            self.base_tsconfig_json = json.load(f)
+        self.base_dockerfile_content = files("jsts_debugger").joinpath("templates/Dockerfile.base").read_text()
+        self.base_package_json = json.loads(files("jsts_debugger").joinpath("templates/package.base.json").read_text())
+        self.base_tsconfig_json = json.loads(files("jsts_debugger").joinpath("templates/tsconfig.base.json").read_text())
+        
         try:
             self.docker_client: DockerClient = docker.from_env()
         except DockerException:
@@ -132,11 +130,6 @@ class JSTSDebugger:
                 f"Image not found. Building image for {project_path} with tag {image_tag}..."
             )
 
-        if not os.path.exists(self.base_dockerfile_path):
-            raise DockerfileNotFoundError(
-                f"Base Dockerfile not found at '{self.base_dockerfile_path}'"
-            )
-
         # Merge package.json and tsconfig.json data
         final_package_json = deep_merge(self.base_package_json, package_json_data or {})
         final_tsconfig_json = deep_merge(
@@ -158,8 +151,7 @@ class JSTSDebugger:
 
             # Add dynamically generated files
             # 1. Dockerfile
-            with open(self.base_dockerfile_path, "r") as f:
-                dockerfile_content = f.read()
+            dockerfile_content = self.base_dockerfile_content
             if repo_name is None:
                 raise ValueError(f"Package name not found in {project_path}")
             dockerfile_content = dockerfile_content.replace("{repo_name}", repo_name)
