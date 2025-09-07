@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 from fastmcp import FastMCP, Client
 import pytest
+from jsts_debugger.debugger import CDPItem
 
 CODE_WITH_BREAKPOINT = """
 import { main } from 'test-project';
@@ -24,34 +25,43 @@ async def create_session_with_code(
             "create_session", {"code": code}
         )
 
-    data = create_result.data
-    if "error" in data:
+    sc = create_result.structured_content
+    if sc is None:
+        pytest.fail("create_session returned no structured_content")
+    data = cast(Dict[str, Any], sc)
+    print('data', data)
+    if not data.get("success"):
         pytest.fail(
-            f"Failed to create session: {data.get('error')}\\n{data.get('stack_trace')}"
+            f"Failed to create session: {data.get('error')}\n{data.get('stack_trace')}"
         )
 
-    assert "session_id" in data
-    assert "execution_result" in data
-    return data["session_id"], data["execution_result"]
+    assert data and data.get("session_id") is not None
+    return data["session_id"], data.get("execution_result", [])
 
 
 async def execute_commands(
     mcp_server: FastMCP, session_id: str, commands: List[Tuple[str, Dict[str, Any]]]
-) -> Dict[str, Any]:
-    """Executes commands and returns the result."""
+):
+    """Executes commands and returns the result dict (structured_data)."""
     client = Client(mcp_server)
     async with client:
         execute_result = await client.call_tool(
             "execute_commands", {"session_id": session_id, "commands": commands}
         )
 
-    data = execute_result.data
-    if "error" in data:
+    sc = execute_result.structured_content
+    if sc is None:
+        pytest.fail("execute_commands returned no structured_content")
+    data = cast(Dict[str, Any], sc)
+    if not data.get("success"):
         pytest.fail(
-            f"Failed to execute commands: {data.get('error')}\\n{data.get('stack_trace')}"
+            f"Failed to execute commands: {data.get('error')}\n{data.get('stack_trace')}"
         )
 
-    return data
+    return {
+        "execution_result": data.get("execution_result", []),
+        "success": bool(data.get("success")),
+    }
 
 
 async def close_session(mcp_server: FastMCP, session_id: str):
@@ -62,13 +72,16 @@ async def close_session(mcp_server: FastMCP, session_id: str):
             "close_session", {"session_id": session_id}
         )
 
-    data = close_result.data
-    if "error" in data:
+    sc = close_result.structured_content
+    if sc is None:
+        pytest.fail("close_session returned no structured_content")
+    data = cast(Dict[str, Any], sc)
+    if not data.get("success"):
         pytest.fail(
-            f"Failed to close session: {data.get('error')}\\n{data.get('stack_trace')}"
+            f"Failed to close session: {data.get('error')}\n{data.get('stack_trace')}"
         )
 
-    assert data.get("status") == f"Session {session_id} closed."
+    assert data and data.get("status") == f"Session {session_id} closed."
 
 
 async def get_paused_call_frame_id(results: List[Dict[str, Any]]) -> str:

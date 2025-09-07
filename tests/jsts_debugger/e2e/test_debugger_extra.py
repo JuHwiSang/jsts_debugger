@@ -48,7 +48,7 @@ g();
 
     detached_event_found = any(
         r.get("type") == "event"
-        and is_script_finished_command(r.get("data", {}).get("method"))
+        and is_script_finished_command(r.get("data", {}).get("method", ""))
         for r in finish_result["execution_result"]
     )
     assert detached_event_found, "Script did not finish after resuming from exception pause"
@@ -67,7 +67,7 @@ foo();
 
     # Find a paused event from the first 'debugger;' pause to extract scriptId
     script_id = None
-    for result in initial_events:
+    for result in initial_events:  # type: ignore[assignment]
         if result.get("type") == "event":
             event = result.get("data", {})
             if event.get("method") == "Debugger.paused":
@@ -85,7 +85,7 @@ foo();
     )
 
     found_source = False
-    for r in src_result["execution_result"]:
+    for r in src_result.get("execution_result", []):
         if r.get("type") == "command_result":
             src = r.get("data", {}).get("scriptSource", "")
             if "function foo()" in src:
@@ -108,7 +108,7 @@ foo(1);
     session_id, initial_events = await create_session_with_code(mcp_server, code)
 
     # Already paused at 'debugger;'
-    call_frame_id = await get_paused_call_frame_id(initial_events)
+    call_frame_id = await get_paused_call_frame_id(initial_events)  # type: ignore[arg-type]
     
     # Evaluate foo to get its objectId
     eval_result = await execute_commands(
@@ -118,7 +118,7 @@ foo(1);
     )
 
     function_id = None
-    for r in eval_result["execution_result"]:
+    for r in eval_result.get("execution_result", []):
         if r.get("type") == "command_result":
             d = r.get("data", {})
             if d.get("result", {}).get("type") == "function":
@@ -138,7 +138,7 @@ foo(1);
 
     paused_found = any(
         r.get("type") == "event" and r.get("data", {}).get("method") == "Debugger.paused"
-        for r in hit_call_bp["execution_result"]
+        for r in hit_call_bp.get("execution_result", [])
     )
     assert paused_found, "Did not pause on function call breakpoint"
 
@@ -146,8 +146,8 @@ foo(1);
     finish_result = await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
     detached_event_found = any(
         r.get("type") == "event"
-        and is_script_finished_command(r.get("data", {}).get("method"))
-        for r in finish_result["execution_result"]
+        and is_script_finished_command(r.get("data", {}).get("method", ""))
+        for r in finish_result.get("execution_result", [])
     )
     assert detached_event_found, "Script did not finish after resuming"
 
@@ -162,7 +162,7 @@ debugger;
 
     session_id, initial_events = await create_session_with_code(mcp_server, code)
 
-    call_frame_id = await get_paused_call_frame_id(initial_events)
+    call_frame_id = await get_paused_call_frame_id(initial_events)  # type: ignore[arg-type]
     
     # Evaluate obj to get its objectId
     eval_obj = await execute_commands(
@@ -172,7 +172,7 @@ debugger;
     )
 
     object_id = None
-    for r in eval_obj["execution_result"]:
+    for r in eval_obj.get("execution_result", []):
         if r.get("type") == "command_result":
             d = r.get("data", {})
             if d.get("result", {}).get("type") == "object":
@@ -197,7 +197,7 @@ debugger;
     )
 
     got_sum = False
-    for r in call_fn["execution_result"]:
+    for r in call_fn.get("execution_result", []):
         if r.get("type") == "command_result":
             if r.get("data", {}).get("result", {}).get("value") == 3:
                 got_sum = True
@@ -229,7 +229,7 @@ console.log('S2');
     def finished(result):
         return any(
             x.get("type") == "event"
-            and is_script_finished_command(x.get("data", {}).get("method"))
+            and is_script_finished_command(x.get("data", {}).get("method", ""))
             for x in result["execution_result"]
         )
 

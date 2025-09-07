@@ -17,6 +17,7 @@ dependencies = [
     "docker",
     "websockets",
     "httpx",
+    "pydantic>=2.11.7",
 ]
 
 [project.optional-dependencies]

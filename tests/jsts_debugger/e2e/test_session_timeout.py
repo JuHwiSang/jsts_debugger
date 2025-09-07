@@ -23,7 +23,8 @@ async def test_session_persists_after_delay(mcp_server):
     session_id, initial_events = await create_session_with_code(
         mcp_server, CODE_FOR_TIMEOUT_TEST
     )
-    assert "error" not in initial_events, f"Session creation failed: {initial_events}"
+    
+    # initial_events are event lists; creation success is validated in helper
     assert any(
         event.get("data", {}).get("method") == "Debugger.paused"
         for event in initial_events if event.get("type") == "event"
@@ -38,13 +39,13 @@ async def test_session_persists_after_delay(mcp_server):
     resume_result = await execute_commands(
         mcp_server, session_id, [("Debugger.resume", {})]
     )
-    assert "error" not in resume_result, f"Resume command failed: {resume_result}"
+    assert resume_result["success"], f"Resume command failed: {resume_result}"
 
 
     # 4. Verify that the script ran to completion
     execution_result = resume_result.get("execution_result", [])
     script_finished = any(
-        is_script_finished_command(event.get("data", {}).get("method"))
+        is_script_finished_command(event.get("data", {}).get("method", ""))
         for event in execution_result
         if event.get("type") == "event"
     )

@@ -2,12 +2,35 @@ from fastmcp import FastMCP
 import json
 
 from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands
-from jsts_debugger.debugger import JSTSDebugger
+from jsts_debugger.debugger import JSTSDebugger, CDPItem
 from typing import Any, Optional, Dict, List
 import traceback
 import re
 from jsts_debugger.helpers import get_package_name
 from jsts_debugger.lib.utils.remove_tabs import remove_tabs
+from pydantic import BaseModel
+
+
+class CreateSessionResult(BaseModel):
+    success: bool
+    session_id: Optional[str] = None
+    execution_result: Optional[List[CDPItem]] = None
+    error: Optional[str] = None
+    stack_trace: Optional[str] = None
+
+
+class ExecuteCommandsResult(BaseModel):
+    success: bool
+    execution_result: Optional[List[CDPItem]] = None
+    error: Optional[str] = None
+    stack_trace: Optional[str] = None
+
+
+class CloseSessionResult(BaseModel):
+    success: bool
+    status: Optional[str] = None
+    error: Optional[str] = None
+    stack_trace: Optional[str] = None
 
 
 def make_mcp_server(name: str, project_path: str) -> FastMCP:
@@ -74,7 +97,7 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
     async def create_session(
         code: str,
         timeout: int = 30,
-    ) -> Dict[str, Any]:
+    ) -> CreateSessionResult:
         """
         새로운 디버깅 세션을 생성하고 초기 이벤트 목록을 반환합니다.
         """
@@ -85,12 +108,13 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
                 initial_commands=[],
                 timeout=timeout,
             )
-            return {
-                "session_id": session.session_id,
-                "execution_result": execution_result,
-            }
+            return CreateSessionResult(
+                success=True,
+                session_id=session.session_id,
+                execution_result=execution_result,
+            )
         except Exception as e:
-            return {"error": str(e), "stack_trace": traceback.format_exc()}
+            return CreateSessionResult(success=False, error=str(e), stack_trace=traceback.format_exc())
 
     @mcp.tool(
         description=remove_tabs(
@@ -238,29 +262,32 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
     async def execute_commands(
         session_id: str,
         commands: List[tuple[str, dict[str, Any]]],
-    ) -> Dict[str, Any]:
+    ) -> ExecuteCommandsResult:
         """
         기존 디버깅 세션에서 명령어들을 실행하고 결과를 반환합니다.
         """
         session = debugger.get_session(session_id)
         if not session:
-            return {"error": f"Session {session_id} not found"}
+            return ExecuteCommandsResult(success=False, error=f"Session {session_id} not found")
 
         try:
             execution_result = await session.execute_commands(commands)
-            return {"execution_result": execution_result}
+            return ExecuteCommandsResult(
+                success=True,
+                execution_result=[CDPItem.model_validate(item) for item in execution_result],
+            )
         except Exception as e:
-            return {"error": str(e), "stack_trace": traceback.format_exc()}
+            return ExecuteCommandsResult(success=False, error=str(e), stack_trace=traceback.format_exc())
 
     @mcp.tool(
         description="Close a debugging session.",
     )
-    def close_session(session_id: str) -> Dict[str, Any]:
+    async def close_session(session_id: str) -> CloseSessionResult:
         """Closes a specific debugging session."""
         try:
-            debugger.close_session(session_id)
-            return {"status": f"Session {session_id} closed."}
+            await debugger.close_session(session_id)
+            return CloseSessionResult(success=True, status=f"Session {session_id} closed.")
         except Exception as e:
-            return {"error": str(e), "stack_trace": traceback.format_exc()}
+            return CloseSessionResult(success=False, error=str(e), stack_trace=traceback.format_exc())
 
     return mcp

@@ -38,7 +38,7 @@ async def test_evaluate_expression_in_session(mcp_server):
 
     # Find the evaluation result in the results
     evaluation_result_found = False
-    for result in eval_result["execution_result"]:
+    for result in eval_result.get("execution_result", []):
         if result.get("type") == "command_result":
             result_data = result.get("data", {})
             # The actual evaluation result is nested inside the 'result' key

@@ -235,22 +235,28 @@ class JSTSSession:
         """
         self._reader_task.cancel()
         if self.ws and not (self.ws.state in [State.CLOSED, State.CLOSING]):
-            print(f"[{datetime.now()}] Closing WebSocket")
-            await self.ws.close()
+            # print(f"[{datetime.now()}] Closing WebSocket")
+            try:
+                await self.ws.close()
+            except Exception as e:
+                # print(f"[{datetime.now()}] Error while closing WebSocket for session {self.session_id}: {e}")
+                pass
 
         try:
-            print(f"[{datetime.now()}] Stopping container {self.container.short_id} for session {self.session_id}...")
+            # print(f"[{datetime.now()}] Stopping container {self.container.short_id} for session {self.session_id}...")
             self.container.stop(timeout=5)
         except NotFound:
-            print(f"[{datetime.now()}] Warning: Container {self.container.short_id} was not found (already stopped).")
+            # print(f"[{datetime.now()}] Warning: Container {self.container.short_id} was not found (already stopped).")
+            pass
         except APIError as e:
-            print(f"[{datetime.now()}] Error while stopping container for session {self.session_id}: {e}")
+            # print(f"[{datetime.now()}] Error while stopping container for session {self.session_id}: {e}")
+            pass
 
     def set_timeout(self, seconds: int):
         """
         Sets the timeout for CDP operations in this session.
         """
-        print(f"[{datetime.now()}] Setting timeout for session {self.session_id} to {seconds} seconds.")
+        # print(f"[{datetime.now()}] Setting timeout for session {self.session_id} to {seconds} seconds.")
         self.timeout_seconds = seconds
 
     # async def __aenter__(self):

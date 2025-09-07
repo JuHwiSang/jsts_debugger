@@ -51,7 +51,7 @@ async def test_set_breakpoint_and_resume(mcp_server):
 
     # Check that we paused at the correct line by looking for a 'Debugger.paused' event
     paused_event_found = False
-    for result in paused_result["execution_result"]:
+    for result in paused_result.get("execution_result", []):
         if result.get("type") == "event":
             event_data = result.get("data", {})
             if event_data.get("method") == "Debugger.paused":
@@ -68,10 +68,10 @@ async def test_set_breakpoint_and_resume(mcp_server):
 
     # Check for script finishing by looking for an 'Inspector.detached' event
     detached_event_found = False
-    for result in final_result["execution_result"]:
+    for result in final_result.get("execution_result", []):
         if result.get("type") == "event":
             event_data = result.get("data", {})
-            if is_script_finished_command(event_data.get("method")):
+            if is_script_finished_command(event_data.get("method", "")):
                 detached_event_found = True
                 break
     assert detached_event_found, "Script did not finish after resuming from breakpoint."

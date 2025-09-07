@@ -38,6 +38,7 @@ from .config import AllowedDebuggerCommand
 from .session import JSTSSession
 from .helpers import get_package_name
 from .lib.utils.deep_merge import deep_merge
+from pydantic import BaseModel
 
 
 class JSTSDebuggerError(Exception):
@@ -74,6 +75,20 @@ class DebuggerConnectionError(JSTSDebuggerError):
     """Raised when the connection to the debugger fails."""
 
     pass
+
+
+class CDPItem(BaseModel):
+    """
+    Structured representation of a single CDP timeline item returned from the
+    session. Each item is either an emitted event or a command result.
+
+    Fields:
+        type: "event" or "command_result"
+        data: The raw payload for the event/command result
+    """
+
+    type: str
+    data: Dict[str, Any]
 
 
 class JSTSDebugger:
@@ -277,7 +292,7 @@ class JSTSDebugger:
         timeout: int = 30,
         package_json_data: Optional[dict[str, Any]] = None,
         tsconfig_json_data: Optional[dict[str, Any]] = None,
-    ) -> Tuple[JSTSSession, List[Dict[str, Any]]]:
+    ) -> Tuple[JSTSSession, List[CDPItem]]:
         """
         Creates a new debugging session by building an image, starting a container, and connecting.
         Returns the session.
@@ -313,7 +328,11 @@ class JSTSDebugger:
             # import time
             # time.sleep(1000000) # debug
 
-            return new_session, events + execution_result
+            items_raw: List[Dict[str, Any]] = events + execution_result
+            print('items_raw', items_raw)
+            items: List[CDPItem] = [CDPItem.model_validate(item) for item in items_raw]
+            print('items', items)
+            return new_session, items
 
         except JSTSDebuggerError:
             if container:
@@ -327,16 +346,12 @@ class JSTSDebugger:
             ) from e
 
 
-    def close_session(self, session_id: str):
+    async def close_session(self, session_id: str):
         """Closes a specific debugging session by its ID."""
         if session_id in self.sessions:
             print(f"Closing session {session_id}...")
             session = self.sessions.pop(session_id)
-            try:
-                loop = asyncio.get_running_loop()
-                loop.create_task(session.close())
-            except RuntimeError:
-                asyncio.run(session.close())
+            await session.close()
             print(f"Session {session_id} closed.")
         else:
             print(f"Warning: Session {session_id} not found.")
@@ -348,7 +363,11 @@ class JSTSDebugger:
             return
         session_ids = list(self.sessions.keys())
         for session_id in session_ids:
-            self.close_session(session_id)
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.close_session(session_id))
+            except RuntimeError:
+                asyncio.run(self.close_session(session_id))
         print("All sessions closed.")
 
     def get_session(self, session_id: str) -> Optional[JSTSSession]:

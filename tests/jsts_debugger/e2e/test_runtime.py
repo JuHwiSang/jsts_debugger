@@ -21,7 +21,7 @@ async def test_get_properties(mcp_server):
 
     # The code has a `debugger;` statement, so it should be paused.
     # We can get the callFrameId directly from the initial events.
-    call_frame_id = await get_paused_call_frame_id(initial_events)
+    call_frame_id = await get_paused_call_frame_id(initial_events)  # type: ignore[arg-type]
 
     # First, evaluate 'myObject' to get its objectId
     eval_result = await execute_commands(
@@ -36,7 +36,7 @@ async def test_get_properties(mcp_server):
     )
 
     object_id = None
-    for result in eval_result["execution_result"]:
+    for result in eval_result.get("execution_result", []):
         if result.get("type") == "command_result":
             result_data = result.get("data", {})
             if result_data.get("result", {}).get("type") == "object":
@@ -52,7 +52,7 @@ async def test_get_properties(mcp_server):
 
     # Check the properties
     properties_found = False
-    for result in properties_result["execution_result"]:
+    for result in properties_result.get("execution_result", []):
         if result.get("type") == "command_result":
             props_data = result.get("data", {}).get("result", [])
             prop_names = {p["name"] for p in props_data}

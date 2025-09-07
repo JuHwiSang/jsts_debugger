@@ -26,12 +26,13 @@ async def test_create_session_and_execute_commands(mcp_server):
     )
 
     # Check for Inspector.detached event, indicating the script finished
+    # Already validated success in helper; just inspect returned events
     events = execution_result.get("execution_result", [])
     detached_event_found = False
     for result in events:
         if result.get("type") == "event":
             event_data = result.get("data", {})
-            if is_script_finished_command(event_data.get("method")):
+            if is_script_finished_command(event_data.get("method", "")):
                 detached_event_found = True
                 break
     assert detached_event_found, "Script did not finish as expected."

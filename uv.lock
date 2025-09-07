@@ -441,6 +441,7 @@ dependencies = [
     { name = "docker" },
     { name = "fastmcp" },
     { name = "httpx" },
+    { name = "pydantic" },
     { name = "websockets" },
 ]
 
@@ -455,6 +456,7 @@ requires-dist = [
     { name = "docker" },
     { name = "fastmcp" },
     { name = "httpx" },
+    { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pytest", marker = "extra == 'tests'" },
     { name = "pytest-asyncio", marker = "extra == 'tests'" },
     { name = "websockets" },

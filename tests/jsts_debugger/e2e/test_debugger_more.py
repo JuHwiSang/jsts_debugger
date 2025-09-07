@@ -31,14 +31,14 @@ console.log('B');
         ],
     )
 
-    events = result["execution_result"]
+    events = result.get("execution_result", [])
     paused_found = any(
         r.get("type") == "event" and r.get("data", {}).get("method") == "Debugger.paused"
         for r in events
     )
     finished_found = any(
         r.get("type") == "event"
-        and is_script_finished_command(r.get("data", {}).get("method"))
+        and is_script_finished_command(r.get("data", {}).get("method", ""))
         for r in events
     )
     assert not paused_found, "Should not pause when skipAllPauses is enabled"
@@ -65,7 +65,7 @@ console.log('line3');
     )
 
     breakpoint_id = None
-    for r in bp_set["execution_result"]:
+    for r in bp_set.get("execution_result", []):
         if r.get("type") == "command_result" and "breakpointId" in r.get("data", {}):
             breakpoint_id = r["data"]["breakpointId"]
             break
@@ -81,14 +81,14 @@ console.log('line3');
         ],
     )
 
-    events = result["execution_result"]
+    events = result.get("execution_result", [])
     paused_found = any(
         r.get("type") == "event" and r.get("data", {}).get("method") == "Debugger.paused"
         for r in events
     )
     finished_found = any(
         r.get("type") == "event"
-        and is_script_finished_command(r.get("data", {}).get("method"))
+        and is_script_finished_command(r.get("data", {}).get("method", ""))
         for r in events
     )
     assert not paused_found, "Should not pause after removing the breakpoint"
@@ -111,7 +111,7 @@ debugger;
     )
 
     value_ok = False
-    for r in eval_result["execution_result"]:
+    for r in eval_result.get("execution_result", []):
         if r.get("type") == "command_result":
             if r.get("data", {}).get("result", {}).get("value") == 3:
                 value_ok = True
@@ -148,9 +148,9 @@ x += 2;
     )
 
     got_coverage = False
-    for r in step_then_cov["execution_result"]:
+    for r in step_then_cov.get("execution_result", []):
         if r.get("type") == "command_result" and isinstance(r.get("data"), dict):
-            if "result" in r["data"] or "coverage" in r["data"]:
+            if "result" in r.get("data", {}) or "coverage" in r.get("data", {}):
                 got_coverage = True
                 break
     assert got_coverage, "Did not receive any precise coverage data/result"
@@ -159,8 +159,8 @@ x += 2;
     finish = await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
     finished_found = any(
         r.get("type") == "event"
-        and is_script_finished_command(r.get("data", {}).get("method"))
-        for r in finish["execution_result"]
+        and is_script_finished_command(r.get("data", {}).get("method", ""))
+        for r in finish.get("execution_result", [])
     )
     assert finished_found, "Script did not finish after resuming"
 

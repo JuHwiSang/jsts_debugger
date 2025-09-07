@@ -39,9 +39,9 @@ async def test_readme_programmatic_usage_example(test_project):
         """
         create_response = await client.call_tool("create_session", {"code": code_to_debug})
         
-        data = create_response.data
-        assert "error" not in data, f"Failed to create session: {data.get('error')}"
-        session_id = data.get('session_id')
+        data = create_response.structured_content or {}
+        assert data.get("success"), f"Failed to create session: {data.get('error')}"
+        session_id = data.get("session_id")
         assert session_id is not None
         
         # Verify that we are paused
@@ -58,18 +58,18 @@ async def test_readme_programmatic_usage_example(test_project):
             "commands": [("Debugger.resume", {})]
         })
         
-        data = resume_response.data
-        assert "error" not in data, f"Failed to execute resume: {data.get('error')}"
+        data = resume_response.structured_content or {}
+        assert data.get("success"), f"Failed to execute resume: {data.get('error')}"
         
         # Verify that the script finished
         execution_result = data.get('execution_result', [])
         assert any(
-            is_script_finished_command(event.get("data", {}).get("method"))
+            is_script_finished_command(event.get("data", {}).get("method", ""))
             for event in execution_result if event.get("type") == "event"
         ), "Script did not finish after resuming."
 
         # 3. Close the session
         close_response = await client.call_tool("close_session", {"session_id": session_id})
-        data = close_response.data
-        assert "error" not in data, f"Failed to close session: {data.get('error')}"
+        data = close_response.structured_content or {}
+        assert data.get("success"), f"Failed to close session: {data.get('error')}"
         assert data.get("status") == f"Session {session_id} closed."
