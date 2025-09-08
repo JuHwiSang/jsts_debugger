@@ -27,10 +27,10 @@ async def test_set_breakpoint_and_resume(mcp_server):
         mcp_server,
         session_id,
         [
-            (
-                "Debugger.setBreakpointByUrl",
-                {"lineNumber": 2, "url": "file:///app/entrypoint.ts"},
-            )
+            {
+                "method": "Debugger.setBreakpointByUrl",
+                "params": {"lineNumber": 2, "url": "file:///app/entrypoint.ts"},
+            }
         ],
     )
     
@@ -46,7 +46,7 @@ async def test_set_breakpoint_and_resume(mcp_server):
 
     # Resume execution to hit the breakpoint
     paused_result = await execute_commands(
-        mcp_server, session_id, [("Debugger.resume", {})]
+        mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}]
     )
 
     # Check that we paused at the correct line by looking for a 'Debugger.paused' event
@@ -63,7 +63,7 @@ async def test_set_breakpoint_and_resume(mcp_server):
 
     # Resume again to finish execution
     final_result = await execute_commands(
-        mcp_server, session_id, [("Debugger.resume", {})]
+        mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}]
     )
 
     # Check for script finishing by looking for an 'Inspector.detached' event

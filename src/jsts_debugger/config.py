@@ -1,4 +1,5 @@
-from typing import Literal, get_args
+from typing import Literal, get_args, Any
+from pydantic import BaseModel
 
 AllowedDebuggerCommand = Literal[
     "Debugger.enable",
@@ -47,3 +48,15 @@ allowed_debugger_commands: list[AllowedDebuggerCommand] = list(get_args(AllowedD
 allowed_debugger_commands_set: set[AllowedDebuggerCommand] = set(get_args(AllowedDebuggerCommand))
 
 entrypoint_ts_path = "/app/entrypoint.ts"
+
+
+class DebuggerCommand(BaseModel):
+    """
+    Pydantic model representing a single CDP command invocation.
+
+    - method: one of the allowed debugger command strings
+    - params: dictionary of parameters for the command (defaults to empty dict)
+    """
+
+    method: AllowedDebuggerCommand
+    params: dict[str, Any] = {}

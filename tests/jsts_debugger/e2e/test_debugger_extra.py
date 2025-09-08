@@ -26,8 +26,8 @@ g();
         mcp_server,
         session_id,
         [
-            ("Debugger.setPauseOnExceptions", {"state": "uncaught"}),
-            ("Debugger.resume", {}),
+            {"method": "Debugger.setPauseOnExceptions", "params": {"state": "uncaught"}},
+            {"method": "Debugger.resume", "params": {}},
         ],
     )
 
@@ -43,7 +43,7 @@ g();
     assert paused_event_found, "Did not pause on exception as expected"
 
     finish_result = await execute_commands(
-        mcp_server, session_id, [("Debugger.resume", {})]
+        mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}]
     )
 
     detached_event_found = any(
@@ -81,7 +81,7 @@ foo();
     src_result = await execute_commands(
         mcp_server,
         session_id,
-        [("Debugger.getScriptSource", {"scriptId": script_id})],
+        [{"method": "Debugger.getScriptSource", "params": {"scriptId": script_id}}],
     )
 
     found_source = False
@@ -94,7 +94,7 @@ foo();
     assert found_source, "Script source did not contain expected function"
 
     # Clean up: run to end
-    await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
+    await execute_commands(mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}])
     await close_session(mcp_server, session_id)
 
 
@@ -114,7 +114,7 @@ foo(1);
     eval_result = await execute_commands(
         mcp_server,
         session_id,
-        [("Debugger.evaluateOnCallFrame", {"expression": "foo", "callFrameId": call_frame_id})],
+        [{"method": "Debugger.evaluateOnCallFrame", "params": {"expression": "foo", "callFrameId": call_frame_id}}],
     )
 
     function_id = None
@@ -131,8 +131,8 @@ foo(1);
         mcp_server,
         session_id,
         [
-            ("Debugger.setBreakpointOnFunctionCall", {"objectId": function_id}),
-            ("Debugger.resume", {}),
+            {"method": "Debugger.setBreakpointOnFunctionCall", "params": {"objectId": function_id}},
+            {"method": "Debugger.resume", "params": {}},
         ],
     )
 
@@ -143,7 +143,7 @@ foo(1);
     assert paused_found, "Did not pause on function call breakpoint"
 
     # Finish execution
-    finish_result = await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
+    finish_result = await execute_commands(mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}])
     detached_event_found = any(
         r.get("type") == "event"
         and is_script_finished_command(r.get("data", {}).get("method", ""))
@@ -168,7 +168,7 @@ debugger;
     eval_obj = await execute_commands(
         mcp_server,
         session_id,
-        [("Debugger.evaluateOnCallFrame", {"expression": "obj", "callFrameId": call_frame_id})],
+        [{"method": "Debugger.evaluateOnCallFrame", "params": {"expression": "obj", "callFrameId": call_frame_id}}],
     )
 
     object_id = None
@@ -185,14 +185,14 @@ debugger;
         mcp_server,
         session_id,
         [
-            (
-                "Runtime.callFunctionOn",
-                {
+            {
+                "method": "Runtime.callFunctionOn",
+                "params": {
                     "objectId": object_id,
                     "functionDeclaration": "function(){ return this.a + this.b; }",
                     "returnByValue": True,
                 },
-            )
+            }
         ],
     )
 
@@ -205,7 +205,7 @@ debugger;
     assert got_sum, "callFunctionOn did not return expected sum"
 
     # Finish
-    await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
+    await execute_commands(mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}])
     await close_session(mcp_server, session_id)
 
 
@@ -223,8 +223,8 @@ console.log('S2');
     session2, _ = await create_session_with_code(mcp_server, code2)
 
     # Resume both sessions to completion
-    r1 = await execute_commands(mcp_server, session1, [("Debugger.resume", {})])
-    r2 = await execute_commands(mcp_server, session2, [("Debugger.resume", {})])
+    r1 = await execute_commands(mcp_server, session1, [{"method": "Debugger.resume", "params": {}}])
+    r2 = await execute_commands(mcp_server, session2, [{"method": "Debugger.resume", "params": {}}])
 
     def finished(result):
         return any(

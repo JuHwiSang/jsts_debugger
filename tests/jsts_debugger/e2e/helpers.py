@@ -40,7 +40,7 @@ async def create_session_with_code(
 
 
 async def execute_commands(
-    mcp_server: FastMCP, session_id: str, commands: List[Tuple[str, Dict[str, Any]]]
+    mcp_server: FastMCP, session_id: str, commands: List[Dict[str, Any]]
 ):
     """Executes commands and returns the result dict (structured_data)."""
     client = Client(mcp_server)

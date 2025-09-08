@@ -1,7 +1,7 @@
 from fastmcp import FastMCP
 import json
 
-from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands
+from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands, DebuggerCommand
 from jsts_debugger.debugger import JSTSDebugger, CDPItem
 from typing import Any, Optional, Dict, List
 import traceback
@@ -261,7 +261,7 @@ def make_mcp_server(name: str, project_path: str) -> FastMCP:
     )
     async def execute_commands(
         session_id: str,
-        commands: List[tuple[str, dict[str, Any]]],
+        commands: List[DebuggerCommand],
     ) -> ExecuteCommandsResult:
         """
         기존 디버깅 세션에서 명령어들을 실행하고 결과를 반환합니다.

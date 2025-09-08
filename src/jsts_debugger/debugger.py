@@ -34,7 +34,7 @@ from docker.errors import (
 
 from importlib.resources import files
 
-from .config import AllowedDebuggerCommand
+from .config import AllowedDebuggerCommand, DebuggerCommand
 from .session import JSTSSession
 from .helpers import get_package_name
 from .lib.utils.deep_merge import deep_merge
@@ -288,7 +288,7 @@ class JSTSDebugger:
         self,
         project_path: str,
         code: str,
-        initial_commands: list[tuple[str, dict[str, Any]]] = [],
+        initial_commands: list[DebuggerCommand] = [],
         timeout: int = 30,
         package_json_data: Optional[dict[str, Any]] = None,
         tsconfig_json_data: Optional[dict[str, Any]] = None,

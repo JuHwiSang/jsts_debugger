@@ -37,7 +37,7 @@ async def test_session_persists_after_delay(mcp_server):
 
     # 3. Resume execution to see if the session is still alive
     resume_result = await execute_commands(
-        mcp_server, session_id, [("Debugger.resume", {})]
+        mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}]
     )
     assert resume_result["success"], f"Resume command failed: {resume_result}"
 

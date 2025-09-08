@@ -15,7 +15,7 @@ from websockets.asyncio.client import ClientConnection
 from websockets.exceptions import ConnectionClosed
 from websockets.protocol import State
 from docker.errors import NotFound, APIError
-from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands_set, entrypoint_ts_path
+from jsts_debugger.config import AllowedDebuggerCommand, allowed_debugger_commands_set, entrypoint_ts_path, DebuggerCommand
 from jsts_debugger.lib.utils.command import is_command_to_ignore, is_debugger_resumed_command, is_program_run_command, is_command_may_run
 
 class CDPError(Exception):
@@ -206,15 +206,15 @@ class JSTSSession:
         return collected_results
 
     async def execute_commands(
-        self, commands: list[tuple[str, dict[str, Any]]],
+        self, commands: list[DebuggerCommand],
         allow_unknown_command: bool = False
     ) -> List[Dict[str, Any]]:
         """
         Executes a list of commands and collects all subsequent events.
         """
         results = []
-        for method, params in commands:
-            result = await self.execute_command(method, params, allow_unknown_command)
+        for command in commands:
+            result = await self.execute_command(command.method, command.params, allow_unknown_command)
             results.extend(result)
         return results
 

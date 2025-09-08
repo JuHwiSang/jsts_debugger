@@ -55,7 +55,7 @@ async def test_readme_programmatic_usage_example(test_project):
         # 2. Resume execution and run to completion
         resume_response = await client.call_tool("execute_commands", {
             "session_id": session_id,
-            "commands": [("Debugger.resume", {})]
+            "commands": [{"method": "Debugger.resume", "params": {}}]
         })
         
         data = resume_response.structured_content or {}

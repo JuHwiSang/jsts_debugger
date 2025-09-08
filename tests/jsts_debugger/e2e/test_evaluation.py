@@ -21,7 +21,9 @@ async def test_evaluate_expression_in_session(mcp_server):
     # The debugger should be paused at the `debugger;` statement.
     # Let's step over a few times to get into the function.
     step_result = await execute_commands(
-        mcp_server, session_id, [("Debugger.stepOver", {})] * 5
+        mcp_server,
+        session_id,
+        [{"method": "Debugger.stepOver", "params": {}} for _ in range(5)]
     )
 
     call_frame_id = await get_paused_call_frame_id(step_result["execution_result"])
@@ -31,8 +33,8 @@ async def test_evaluate_expression_in_session(mcp_server):
         mcp_server,
         session_id,
         [
-            ("Debugger.evaluateOnCallFrame", {"expression": "a + b", "callFrameId": call_frame_id}),
-            ("Debugger.resume", {}),
+            {"method": "Debugger.evaluateOnCallFrame", "params": {"expression": "a + b", "callFrameId": call_frame_id}},
+            {"method": "Debugger.resume", "params": {}},
         ],
     )
 

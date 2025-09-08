@@ -26,8 +26,8 @@ console.log('B');
         mcp_server,
         session_id,
         [
-            ("Debugger.setSkipAllPauses", {"skip": True}),
-            ("Debugger.resume", {}),
+            {"method": "Debugger.setSkipAllPauses", "params": {"skip": True}},
+            {"method": "Debugger.resume", "params": {}},
         ],
     )
 
@@ -61,7 +61,7 @@ console.log('line3');
     bp_set = await execute_commands(
         mcp_server,
         session_id,
-        [("Debugger.setBreakpointByUrl", {"lineNumber": 1, "url": "file:///app/entrypoint.ts"})],
+        [{"method": "Debugger.setBreakpointByUrl", "params": {"lineNumber": 1, "url": "file:///app/entrypoint.ts"}}],
     )
 
     breakpoint_id = None
@@ -76,8 +76,8 @@ console.log('line3');
         mcp_server,
         session_id,
         [
-            ("Debugger.removeBreakpoint", {"breakpointId": breakpoint_id}),
-            ("Debugger.resume", {}),
+            {"method": "Debugger.removeBreakpoint", "params": {"breakpointId": breakpoint_id}},
+            {"method": "Debugger.resume", "params": {}},
         ],
     )
 
@@ -107,7 +107,7 @@ debugger;
     eval_result = await execute_commands(
         mcp_server,
         session_id,
-        [("Runtime.evaluate", {"expression": "1 + 2", "returnByValue": True})],
+        [{"method": "Runtime.evaluate", "params": {"expression": "1 + 2", "returnByValue": True}}],
     )
 
     value_ok = False
@@ -119,7 +119,7 @@ debugger;
     assert value_ok, "Runtime.evaluate did not return expected value"
 
     # Finish
-    await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
+    await execute_commands(mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}])
     await close_session(mcp_server, session_id)
 
 
@@ -139,11 +139,11 @@ x += 2;
         mcp_server,
         session_id,
         [
-            ("Profiler.startPreciseCoverage", {"callCount": True, "detailed": True}),
-            ("Debugger.stepOver", {}),
-            ("Debugger.stepOver", {}),
-            ("Profiler.takePreciseCoverage", {}),
-            ("Profiler.stopPreciseCoverage", {}),
+            {"method": "Profiler.startPreciseCoverage", "params": {"callCount": True, "detailed": True}},
+            {"method": "Debugger.stepOver", "params": {}},
+            {"method": "Debugger.stepOver", "params": {}},
+            {"method": "Profiler.takePreciseCoverage", "params": {}},
+            {"method": "Profiler.stopPreciseCoverage", "params": {}},
         ],
     )
 
@@ -156,7 +156,7 @@ x += 2;
     assert got_coverage, "Did not receive any precise coverage data/result"
 
     # Now finish
-    finish = await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
+    finish = await execute_commands(mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}])
     finished_found = any(
         r.get("type") == "event"
         and is_script_finished_command(r.get("data", {}).get("method", ""))

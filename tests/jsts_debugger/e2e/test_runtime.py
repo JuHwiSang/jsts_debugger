@@ -28,10 +28,10 @@ async def test_get_properties(mcp_server):
         mcp_server,
         session_id,
         [
-            (
-                "Debugger.evaluateOnCallFrame",
-                {"expression": "myObject", "callFrameId": call_frame_id},
-            )
+            {
+                "method": "Debugger.evaluateOnCallFrame",
+                "params": {"expression": "myObject", "callFrameId": call_frame_id},
+            }
         ],
     )
 
@@ -47,7 +47,7 @@ async def test_get_properties(mcp_server):
 
     # Now, get the properties of the object
     properties_result = await execute_commands(
-        mcp_server, session_id, [("Runtime.getProperties", {"objectId": object_id})]
+        mcp_server, session_id, [{"method": "Runtime.getProperties", "params": {"objectId": object_id}}]
     )
 
     # Check the properties
@@ -63,5 +63,5 @@ async def test_get_properties(mcp_server):
     assert properties_found, "Did not find the expected properties for 'myObject'"
 
     # Clean up
-    await execute_commands(mcp_server, session_id, [("Debugger.resume", {})])
+    await execute_commands(mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}])
     await close_session(mcp_server, session_id)

@@ -85,7 +85,7 @@ async def debug_session():
             "execute_commands",
             {
                 "session_id": session_id,
-                "commands": [("Debugger.resume", {})]
+                "commands": [{"method": "Debugger.resume", "params": {}}]
             }
         )
         # 'execution_result' contains events after resuming
@@ -123,7 +123,7 @@ Executes one or more CDP commands in an existing session.
 
 -   **Parameters**:
     -   `session_id` (str): The ID of the target session.
-    -   `commands` (list): A list of commands in the format `[("method", {"param1": "value1"})]`.
+    -   `commands` (list): A list of command objects: `[{"method": "Debugger.resume", "params": {}}]`.
 -   **Returns**:
     -   `execution_result` (list): A time-ordered, flattened list of command results and events. Each item has a `type` field (`command_result` or `event`).
 

@@ -17,12 +17,12 @@ async def test_create_session_and_execute_commands(mcp_server):
 
     # There are `debugger;` statements in the code, so the debugger should pause. Resume execution.
     await execute_commands(
-        mcp_server, session_id, [("Debugger.resume", {})]
+        mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}]
     )
     
     # After the first resume, there's another `debugger;` statement. Resume again.
     execution_result = await execute_commands(
-        mcp_server, session_id, [("Debugger.resume", {})]
+        mcp_server, session_id, [{"method": "Debugger.resume", "params": {}}]
     )
 
     # Check for Inspector.detached event, indicating the script finished
