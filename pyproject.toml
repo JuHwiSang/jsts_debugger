@@ -1,6 +1,6 @@
 [project]
 name = "jsts_debugger"
-version = "0.1.5"
+version = "0.1.6"
 authors = [
   { name="JuHwiSang", email="juhs2005@gmail.com" },
 ]
